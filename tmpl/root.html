@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>snmp2sapwalk</title>
+
+    <!-- Bootstrap -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="/assets/css/bootstrap.min.css" rel="stylesheet" media="screen">
+
+    <!-- Dropzone -->
+    <link href="/assets/css/dropzone.css" rel="stylesheet" media="screen">
+    <script src="/assets/js/dropzone.js"></script>
+
+    <!-- Custom Styles -->
+    <style type="text/css">
+      body {
+        padding-top: 20px;
+        padding-bottom: 40px;
+      }
+
+      .container-narrow {
+        margin: 0 auto;
+        max-width: 700px;
+      }
+      .container-narrow > hr {
+        margin: 30px 0;
+      }
+
+      .jumbotron {
+        margin: 60px 0;
+        text-align: center;
+      }
+      .jumbotron .well {
+        font-size: 21px;
+        padding: 14px 24px;
+      }
+    </style>
+
+    <!-- Custom Scripts -->
+    <script type="text/javascript">
+      Dropzone.autoDiscover = false;
+    </script>
+  </head>
+  <body>
+    <div class="container-narrow">
+      <div class="masthead">
+        <h3 class="muted">snmp2sapwalk</h3>
+      </div>
+
+      <hr>
+
+      <div class="jumbtotron">
+        <p class="lead">
+        Drop snmpwalk output files below to convert to SimpleAgentPro format.
+        </p>
+
+        <form id="snmpwalk-dropzone" class="dropzone well well-large" action="/"></form>
+      </div>
+    </div>
+
+    <script type="text/javascript">
+      var snmpwalkdz = new Dropzone("#snmpwalk-dropzone", {
+        init: function() {
+
+          // We need a new blobstore upload URL for every file.
+          this.on("sending", function(file, xhr, formData) {
+            var r = new XMLHttpRequest();
+            r.open("GET", "/uploadurl", false);
+            r.onreadystatechange = function () {
+              if (r.readyState != 4 || r.status != 200) return;
+              xhr.open("POST", r.responseText, true);
+            };
+            r.send();
+          });
+
+          // Download the resulting blob.
+          this.on("success", function(file, response) {
+            var keys = eval(response),
+                iframe_id = 'download-iframe',
+                iframe = document.getElementById(iframe_id);
+
+            if (iframe === null) {
+              iframe = document.createElement('iframe');
+              iframe.id = iframe_id;
+              iframe.style.display = "none";
+              document.body.appendChild(iframe);
+            }
+
+            for (i = 0; i < keys.length; i++) {
+              iframe.src = "/download?key=" + keys[i]
+            }
+          });
+        }
+      });
+    </script>
+  </body>
+</html>
